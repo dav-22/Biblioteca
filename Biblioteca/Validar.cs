@@ -41,9 +41,10 @@ namespace Biblioteca
 
                 try
                 {
-
+                    //DNI dl regisro entrante
                     int dni = entity.GetAttributeValue<int>("new_dni");
-                    int nroSocio = entity.GetAttributeValue<int>("new_nrodesocio");
+                  
+                    //Comparo DNI entrante con los DNI de la tabla
                     ConditionExpression condition = new ConditionExpression();
                     condition.AttributeName = "new_dni";
                     condition.Operator = ConditionOperator.Equal;
@@ -60,28 +61,40 @@ namespace Biblioteca
 
                     int total = result.Entities.Count;
 
-                    if(total >= 1)
+                    if (total >= 1)
                     {
                         throw new InvalidPluginExecutionException("DNI ya existente");
 
                     }
 
+                    //FetchXML para traer el nro max de socio
                     string fetch = @" 
-                        <fetch distinct='false' mapping='logical' aggregate='true'> 
-                           <entity name='new_socio'> 
-                               <attribute name='new_nrodesocio' alias='max_nrodesocio' aggregate='max' /> 
+                        <fetch top='1'> 
+                           <entity name='new_socio'>   
+                                <attribute name='new_nrodesocio' /> 
+                                <order attribute='new_nrodesocio' descending = 'true' /> 
                            </entity> 
                         </fetch>";
 
+
                     EntityCollection fetchresult = service.RetrieveMultiple(new FetchExpression(fetch));
 
-                    foreach (var c in fetchresult.Entities)
-                    {
-                        int max = (int)((AliasedValue)c["max_nrodesocio"]).Value;
+                    var socio = fetchresult.Entities.FirstOrDefault();
 
-                        entity["new_nrodesocio"] = max + 1;
+                    
+
+                    if(socio != null)
+                    {
+                        
+                        entity["new_nrodesocio"] = socio.GetAttributeValue<int>("new_nrodesocio") + 1;
 
                     }
+                    else
+                    {
+                        entity["new_nrodesocio"] = 1;
+                    }
+
+                
                 }
 
                 catch (FaultException<OrganizationServiceFault> ex)
@@ -100,3 +113,10 @@ namespace Biblioteca
        
     }
 }
+
+//string fetch = @" 
+//    <fetch distinct='false' mapping='logical' aggregate='true' top='1'> 
+//        <entity name='new_socio'> 
+//            <attribute name='new_nrodesocio' alias='max_nrodesocio' aggregate='max' /> 
+//        </entity> 
+//    </fetch>";

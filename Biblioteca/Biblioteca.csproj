@@ -91,6 +91,7 @@
   <ItemGroup>
     <Compile Include="Validar.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="ValidarISBN.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="app.config" />
